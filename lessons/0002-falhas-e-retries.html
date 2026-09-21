@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Licao 02 | Falhas e retries no Kestra</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+  <script src="../assets/lesson.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">Kestra / trilha</a>
+      <nav class="topnav" aria-label="Navegacao">
+        <a href="0001-contrato-de-um-flow.html">Licao anterior</a>
+        <a href="../reference/fluxo-anatomia.html">Referencia</a>
+        <a href="index.html">Trilha</a>
+      </nav>
+    </header>
+
+    <main>
+      <header class="hero">
+        <span class="kicker">Licao 02 / 8 minutos</span>
+        <h1>Robustez nao e repetir tudo.</h1>
+        <p>Uma API pode falhar por alguns segundos. Um dado invalido pode falhar sempre. O trabalho profissional e distinguir os dois casos e dar a cada um uma resposta explicita.</p>
+        <div class="lesson-meta">
+          <span>Vitoria: escolher retry ou tratamento de erro</span>
+          <span>Pre-requisito: licao 01</span>
+        </div>
+      </header>
+
+      <div class="lesson-layout">
+        <div class="content-column">
+          <section>
+            <p class="lead">Retries sao uma politica para falhas transitorias. Handlers de erro sao uma politica para o que fazer quando a execucao termina em falha.</p>
+            <div class="definition-grid">
+              <div class="definition">
+                <strong>Retry</strong>
+                <p>Tenta a mesma tarefa novamente dentro de limites de tentativas e tempo.</p>
+              </div>
+              <div class="definition">
+                <strong>errors</strong>
+                <p>Executa tarefas de tratamento quando algo falha no flow ou em um bloco.</p>
+              </div>
+              <div class="definition">
+                <strong>allowFailure</strong>
+                <p>Permite continuar depois de uma falha aceitavel, terminando a execucao como WARNING.</p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2>Um padrao minimo de confiabilidade</h2>
+            <p>O bloco abaixo combina uma chamada externa com retry exponencial e um handler global. O intervalo cresce entre tentativas, reduzindo a pressao sobre um servico que esta instavel.</p>
+            <div class="code-frame">
+              <div class="code-label">
+                <span>billing_sync.yaml</span>
+                <button class="copy-button" type="button" data-copy-target="#retry-yaml">Copiar</button>
+              </div>
+              <pre id="retry-yaml"><code>id: billing_sync
+namespace: training.kestra
+description: Sincroniza dados de cobranca com limite de recuperacao
+
+inputs:
+  - id: endpoint
+    type: STRING
+    defaults: https://example.invalid/billing
+
+tasks:
+  - id: call_billing_api
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.endpoint }}"
+    retry:
+      type: exponential
+      maxAttempts: 3
+      interval: PT5S
+      maxInterval: PT1M
+      maxDuration: PT3M
+
+errors:
+  - id: alert_failure
+    type: io.kestra.plugin.core.log.Log
+    level: ERROR
+    message: "Falha em {{ flow.namespace }}.{{ flow.id }} / {{ execution.id }}"</code></pre>
+            </div>
+            <p>O retry nao e infinito: <code>maxAttempts</code> conta a tentativa inicial, e <code>maxDuration</code> limita o tempo total. O handler registra o contexto da falha para observacao ou alerta.</p>
+          </section>
+
+          <section>
+            <h2>Decida pelo tipo de falha</h2>
+            <div class="steps">
+              <div class="step">
+                <div><strong>Servico indisponivel por instantes</strong><p>Considere retry exponencial com limites. A falha pode desaparecer sem intervencao humana.</p></div>
+              </div>
+              <div class="step">
+                <div><strong>Payload invalido</strong><p>Retry tende a repetir o mesmo erro. Valide, registre contexto e encaminhe para correcao.</p></div>
+              </div>
+              <div class="step">
+                <div><strong>Falha nao critica</strong><p>Use <code>allowFailure</code> somente quando continuar for uma decisao de negocio explicita.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="practice">
+              <h3>Recuperacao: qual resposta cabe?</h3>
+              <p class="quiz-question">Uma API respondeu 503 de forma intermitente. Qual e a primeira politica?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Correto: 503 intermitente e um sinal de falha transitoria; retry limitado pode recuperar a execucao.">Repetir falha transitória</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Dados invalidos nao sao corrigidos repetindo a mesma requisicao.">Corrigir dado invalido</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Esconder a falha elimina a evidencia necessaria para operar o servico.">Esconder erro operacional</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2>A pergunta que protege o seu servico</h2>
+            <p>Antes de adicionar um retry, pergunte: repetir a tarefa pode duplicar um efeito? Uma cobranca, envio de e-mail ou criacao de registro pode exigir idempotencia antes de qualquer politica automatica.</p>
+            <p><strong>Exercicio de 60 segundos:</strong> escolha uma automacao empresarial sua e escreva duas falhas: uma que pode desaparecer sozinha e outra que exige correcao humana. Diga qual evidencia o operador precisa receber.</p>
+          </section>
+
+          <section>
+            <h2>Fonte primaria e continuidade</h2>
+            <p>Leia a documentacao oficial de <a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">retries</a> e <a href="https://kestra.io/docs/workflow-components/errors" target="_blank" rel="noreferrer">errors</a>. A licao anterior explica o contrato de <a href="0001-contrato-de-um-flow.html">inputs e outputs</a>; a referencia de <a href="../reference/fluxo-anatomia.html">anatomia do flow</a> ajuda a manter o desenho pequeno.</p>
+            <div class="practice">
+              <h3>Traga sua pergunta</h3>
+              <p>Se voce nao souber se uma falha e transitoria, traga o caso concreto. Vamos analisar o efeito, o limite de tentativas e o risco de duplicidade antes de escolher a configuracao.</p>
+            </div>
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <div class="side-note">
+            <h3>Regra curta</h3>
+            <p>Retry trata instabilidade. Handler trata comunicacao e recuperacao.</p>
+          </div>
+          <div class="side-note">
+            <h3>Limites importam</h3>
+            <p>Uma politica sem limite pode transformar uma indisponibilidade em tempestade de requisicoes.</p>
+          </div>
+          <div class="side-note">
+            <h3>Proximo degrau</h3>
+            <p>Depois de falhas, a trilha segue para triggers, secrets e idempotencia em integracoes reais.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer">Licao 02 da trilha Kestra. O proximo desafio sera definido pelo seu caso de automacao.</footer>
+  </div>
+</body>
+</html>
