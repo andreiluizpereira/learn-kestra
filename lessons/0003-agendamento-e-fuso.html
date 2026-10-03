@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lição 03 | Agendamento e fuso no Kestra</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+  <script src="../assets/lesson.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">Kestra / trilha</a>
+      <nav class="topnav" aria-label="Navegação">
+        <a href="0002-falhas-e-retries.html">Lição anterior</a>
+        <a href="../reference/fluxo-anatomia.html">Referência</a>
+        <a href="index.html">Trilha</a>
+      </nav>
+    </header>
+    <main>
+      <header class="hero">
+        <span class="kicker">Lição 03 / 7 minutos</span>
+        <h1>Agendamento e fuso horário</h1>
+        <p>Seu cliente quer um resumo todos os dias às 09h de São Paulo. Transforme esse pedido em um início automático e explícito, sem confundir agendamento com retry.</p>
+        <div class="lesson-meta">
+          <span>Vitória: desenhar um Schedule diário</span>
+          <span>Pré-requisitos: lições 01 e 02</span>
+        </div>
+      </header>
+      <div class="lesson-layout">
+        <div class="content-column">
+          <section>
+            <h2>Primeiro, recupere da memória</h2>
+            <div class="practice">
+              <h3>Uma tarefa falhou</h3>
+              <p class="quiz-question">Há três tarefas em sequência. Só a segunda tem retry configurado e falha temporariamente. O que esse retry repete?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="O retry está na segunda tarefa, não no nível do flow. Ele não reinicia todos os passos.">O flow inteiro</button>
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Isso: o retry da tarefa repete a segunda tarefa dentro dos limites configurados.">A segunda tarefa</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Um retry de tarefa não reinicia todas as execuções do namespace.">O namespace inteiro</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+            <p>Na <a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">configuração da lição 02</a>, <code>retry</code> está na tarefa. Existem retries no nível do flow, mas são outra configuração. <a href="https://kestra.io/docs/workflow-components/errors" target="_blank" rel="noreferrer"><code>errors</code></a> trata falhas mesmo sem retry. E <a href="https://kestra.io/docs/workflow-components/outputs" target="_blank" rel="noreferrer">outputs</a> podem ser resultados de tarefas ou saídas declaradas do flow.</p>
+          </section>
+          <section>
+            <h2>O horário inicia; a tarefa executa</h2>
+            <p class="lead">Um trigger inicia uma execução quando ocorre um evento ou chega um horário. Schedule é o trigger baseado em calendário.</p>
+            <div class="definition-grid">
+              <div class="definition"><strong>triggers</strong><p>A lista de gatilhos do flow. Nesta lição, usamos só um Schedule.</p></div>
+              <div class="definition"><strong>cron</strong><p>A regra de calendário: em quais minutos, horas e dias iniciar.</p></div>
+              <div class="definition"><strong>timezone</strong><p>O fuso usado para interpretar esse horário. Sem configuração, o padrão é UTC.</p></div>
+            </div>
+            <p>Esses papéis e o padrão UTC vêm do <a href="https://kestra.io/docs/tutorial/triggers" target="_blank" rel="noreferrer">tutorial oficial de triggers</a>. Um Schedule não substitui retry: agendamento inicia execuções; retry reage a uma falha conforme a política configurada.</p>
+          </section>
+          <section>
+            <h2>Um resumo diário, sem efeitos externos</h2>
+            <p>Este exemplo apenas registra uma mensagem e declara uma saída. Ele não envia um relatório nem chama uma API; assim, você pode estudar o agendamento sem cobrar ou notificar alguém por acidente.</p>
+            <div class="code-frame">
+              <div class="code-label"><span>resumo_diario.yaml</span><button class="copy-button" type="button" data-copy-target="#schedule-yaml">Copiar</button></div>
+              <pre id="schedule-yaml"><code>id: resumo_diario
+namespace: training.kestra
+description: Demonstra o agendamento de um resumo empresarial
+
+inputs:
+  - id: cliente
+    type: STRING
+    defaults: cliente_demo
+
+tasks:
+  - id: registrar_resumo
+    type: io.kestra.plugin.core.log.Log
+    message: "Resumo de {{ inputs.cliente }} / {{ execution.id }}"
+
+outputs:
+  - id: comprovante
+    type: STRING
+    value: "Resumo de {{ inputs.cliente }} / {{ execution.id }}"
+
+triggers:
+  - id: todo_dia_as_09
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 * * *"
+    timezone: America/Sao_Paulo</code></pre>
+            </div>
+            <p>O input tem um valor padrão para a execução não depender de alguém digitando o cliente. Para outro cliente, uma execução manual pode informar outro valor. A mensagem e a saída usam o mesmo input, retomando o <a href="0001-contrato-de-um-flow.html">contrato da lição 01</a>.</p>
+            <div class="table-wrap">
+              <table>
+                <caption>Leia o cron da esquerda para a direita</caption>
+                <thead><tr><th>Minuto</th><th>Hora</th><th>Dia do mês</th><th>Mês</th><th>Dia da semana</th></tr></thead>
+                <tbody><tr><td><code>0</code></td><td><code>9</code></td><td><code>*</code></td><td><code>*</code></td><td><code>*</code></td></tr></tbody>
+              </table>
+            </div>
+            <p><code>*</code> significa qualquer valor naquele campo: às 09h00, todos os dias, no fuso declarado. Não significa esperar nove horas depois de terminar a execução anterior.</p>
+          </section>
+          <section>
+            <h2>Decida antes de olhar o exemplo de novo</h2>
+            <div class="practice">
+              <h3>O contrato do horário</h3>
+              <p class="quiz-question">O cliente pediu 09h de São Paulo. Qual timezone deixa esse requisito explícito?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="UTC é o padrão, mas 09h UTC não expressa o horário local solicitado.">timezone: UTC</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Esse identificador expressa o horário de Nova York, não de São Paulo.">timezone: America/New_York</button>
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Isso: declare America/Sao_Paulo para interpretar o cron no fuso pedido.">timezone: America/Sao_Paulo</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+            <div class="practice">
+              <h3>Uma falha sem retry</h3>
+              <p class="quiz-question">Uma tarefa falha, sem retry e sem allowFailure. Há um handler global em errors. O que ele pode fazer?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Isso: errors não exige retry. Um handler pode registrar contexto ou enviar um alerta; isso não prova sucesso do processo.">Registrar a falha</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="O handler não altera automaticamente o calendário do Schedule.">Alterar o cron</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Tratar a falha não significa que o resultado empresarial foi alcançado.">Garantir o sucesso</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Prática de 60 segundos</h2>
+            <p>Sem consultar o YAML, escreva um bloco <code>triggers</code> para iniciar esse resumo todos os dias às 14h30 de São Paulo. Explique também por que isso não recupera automaticamente uma tarefa que falhou às 14h31.</p>
+            <p>Se já tiver Kestra disponível, valide o flow no editor, execute manualmente com <code>cliente: loja_demo</code> e confira o log e o output <code>comprovante</code>. Consulte a aba Triggers para verificar a configuração do agendamento. Executar manualmente testa as tarefas e o contrato, não comprova que o disparo agendado aconteceu.</p>
+            <figure>
+              <img src="https://kestra.io/cdn-cgi/image/onerror=redirect,width=3832,height=826,format=webp/_astro/flow-triggers-2-0.3drxweH2.png" alt="Aba Triggers do Kestra mostrando as informações dos gatilhos de um flow" width="640" style="max-width: 100%; height: auto;" loading="lazy">
+              <figcaption>Aba Triggers, conforme o <a href="https://kestra.io/docs/tutorial/triggers" target="_blank" rel="noreferrer">tutorial oficial</a>. A aparência pode variar com a versão instalada.</figcaption>
+            </figure>
+            <p>Sem ambiente configurado, faça só o exercício escrito. Ainda não executamos este YAML em uma instância do Kestra.</p>
+          </section>
+          <section>
+            <h2>Fonte primária e próximo encontro</h2>
+            <p>Leia o <a href="https://kestra.io/docs/tutorial/triggers" target="_blank" rel="noreferrer">tutorial oficial de triggers</a>, especialmente o exemplo Schedule e a nota sobre UTC. Para consulta curta, use a <a href="../reference/fluxo-anatomia.html#agendamento">referência de agendamento</a>.</p>
+            <div class="practice">
+              <h3>Traga sua resposta ou dúvida</h3>
+              <p>Envie o bloco das 14h30 e sua explicação sobre retry. Conte se usa Kestra Cloud, uma instalação local ou ainda nenhum ambiente. Isso definirá o próximo passo prático; não é necessário compartilhar credenciais.</p>
+            </div>
+            <p>Em outro dia, tente reconstruir esse bloco sem consultar a lição. A recuperação depois de um intervalo ajuda a distinguir lembrança durável de familiaridade com o exemplo.</p>
+          </section>
+        </div>
+        <aside class="side-column">
+          <div class="side-note"><h3>Começar não é concluir</h3><p>Um trigger inicia a execução. O resultado ainda depende das tarefas e precisa de evidência.</p></div>
+          <div class="side-note"><h3>Calendário não é recuperação</h3><p>O próximo disparo diário não equivale a um retry da tarefa que falhou hoje.</p></div>
+          <div class="side-note"><h3>Próximo degrau</h3><p>Escolher o ambiente para praticar e depois proteger credenciais e efeitos repetidos nas integrações.</p></div>
+        </aside>
+      </div>
+    </main>
+    <footer class="footer">Lição 03 da trilha Kestra. <a href="index.html">Voltar à trilha</a>.</footer>
+  </div>
+</body>
+</html>

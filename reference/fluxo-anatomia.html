@@ -3,25 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Referencia | Anatomia de um flow Kestra</title>
+  <title>Referência | Anatomia de um flow Kestra</title>
   <link rel="stylesheet" href="../assets/lesson.css">
 </head>
 <body>
   <div class="site-shell">
     <header class="topbar">
       <a class="brand" href="../lessons/index.html">Kestra / trilha</a>
-      <nav class="topnav" aria-label="Navegacao">
-        <a href="../lessons/0001-contrato-de-um-flow.html">Licao 01</a>
-        <a href="../lessons/0002-falhas-e-retries.html">Licao 02</a>
-        <a href="../MISSION.md">Missao</a>
+      <nav class="topnav" aria-label="Navegação">
+        <a href="../lessons/0001-contrato-de-um-flow.html">Lição 01</a>
+        <a href="../lessons/0002-falhas-e-retries.html">Lição 02</a>
+        <a href="../MISSION.md">Missão</a>
       </nav>
     </header>
 
     <main>
       <header class="page-heading">
-        <span class="kicker">Referencia rapida / 01</span>
+        <span class="kicker">Referência rápida / 01</span>
         <h1>A anatomia de um flow</h1>
-        <p>O minimo necessario para transformar um processo empresarial em um contrato executavel e observavel.</p>
+        <p>O mínimo necessário para transformar um processo empresarial em um contrato executável e observável.</p>
       </header>
 
       <section class="resource-band">
@@ -38,33 +38,33 @@
             <tbody>
               <tr>
                 <td><code>id</code> + <code>namespace</code></td>
-                <td>Identidade estavel do flow.</td>
-                <td>Onde este processo vive e como sera encontrado?</td>
+                <td>Identidade estável do flow.</td>
+                <td>Onde este processo vive e como será encontrado?</td>
               </tr>
               <tr>
                 <td><code>description</code></td>
-                <td>Intencao operacional.</td>
+                <td>Intenção operacional.</td>
                 <td>Que resultado o cliente espera deste flow?</td>
               </tr>
               <tr>
                 <td><code>inputs</code></td>
-                <td>Dados que variam por execucao.</td>
-                <td>O que muda sem justificar uma nova versao do flow?</td>
+                <td>Dados que variam por execução.</td>
+                <td>O que muda sem justificar uma nova versão do flow?</td>
               </tr>
               <tr>
                 <td><code>tasks</code></td>
-                <td>Passos executaveis.</td>
+                <td>Passos executáveis.</td>
                 <td>Quais efeitos acontecem e em que ordem?</td>
               </tr>
               <tr>
                 <td><code>outputs</code></td>
-                <td>Resultado consumivel por pessoas ou outros flows.</td>
-                <td>Qual evidencia prova que o processo terminou bem?</td>
+                <td>Resultado consumível por pessoas ou outros flows.</td>
+                <td>Qual evidência prova que o processo terminou bem?</td>
               </tr>
               <tr>
                 <td><code>triggers</code></td>
-                <td>Eventos que iniciam execucoes.</td>
-                <td>O processo comeca por pessoa, horario ou evento?</td>
+                <td>Eventos que iniciam execuções.</td>
+                <td>O processo começa por pessoa, horário ou evento?</td>
               </tr>
             </tbody>
           </table>
@@ -72,8 +72,8 @@
       </section>
 
       <section class="resource-band">
-        <h2>Esqueleto seguro para comecar</h2>
-        <p>Comece com identidade, dados de entrada e saida explicita. Integre servicos externos depois que esse contrato estiver claro.</p>
+        <h2>Esqueleto seguro para começar</h2>
+        <p>Comece com identidade, dados de entrada e saída explícita. Integre serviços externos depois que esse contrato estiver claro.</p>
         <div class="code-frame">
           <div class="code-label"><span>flow.yaml</span></div>
           <pre><code>id: processo_empresarial
@@ -83,7 +83,7 @@ description: Resultado que o cliente compra
 inputs:
   - id: referencia
     type: STRING
-    defaults: demonstracao
+    defaults: demonstração
 
 tasks:
   - id: executar_processo
@@ -93,7 +93,7 @@ tasks:
 outputs:
   - id: status
     type: STRING
-    value: "concluido: {{ inputs.referencia }}"</code></pre>
+    value: "concluído: {{ inputs.referencia }}"</code></pre>
         </div>
       </section>
 
@@ -101,27 +101,42 @@ outputs:
         <h2>Regras de bolso</h2>
         <div class="definition-grid">
           <div class="definition">
-            <strong>Dados variaveis</strong>
-            <p>Devem ser inputs. Nao clone um flow apenas porque mudou o cliente ou o periodo.</p>
+            <strong>Dados variáveis</strong>
+            <p>Devem ser inputs. Não clone um flow apenas porque mudou o cliente ou o período.</p>
           </div>
           <div class="definition">
-            <strong>Resultado verificavel</strong>
+            <strong>Resultado verificável</strong>
             <p>Declare outputs que permitam verificar o efeito sem depender de ler uma mensagem solta no log.</p>
           </div>
           <div class="definition">
             <strong>Segredos</strong>
-            <p>Nunca use outputs para senhas, tokens ou credenciais; a documentacao alerta que outputs ficam armazenados em texto claro.</p>
+            <p>Nunca use outputs para senhas, tokens ou credenciais; a documentação alerta que outputs ficam armazenados em texto claro.</p>
           </div>
         </div>
       </section>
 
+      <section class="resource-band" id="agendamento">
+        <h2>Agendamento diário</h2>
+        <p>Schedule inicia execuções pelo calendário; retry reage a falhas conforme seu nível de configuração. Um handler em <code>errors</code> pode tratar falhas mesmo sem retry.</p>
+        <div class="code-frame">
+          <div class="code-label"><span>Bloco triggers</span></div>
+          <pre><code>triggers:
+  - id: todo_dia_as_09
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 * * *"
+    timezone: America/Sao_Paulo</code></pre>
+        </div>
+        <p>Campos do cron: minuto, hora, dia do mês, mês, dia da semana. <code>*</code> aceita qualquer valor no campo. O exemplo inicia às 09h00 todos os dias no fuso de São Paulo; sem <code>timezone</code>, o padrão é UTC. Inputs necessários precisam estar disponíveis sem interação humana, por exemplo com defaults.</p>
+        <p>Fontes: <a href="https://kestra.io/docs/tutorial/triggers" target="_blank" rel="noreferrer">triggers</a>, <a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">retries</a> e <a href="https://kestra.io/docs/workflow-components/errors" target="_blank" rel="noreferrer">errors</a>. Pratique na <a href="../lessons/0003-agendamento-e-fuso.html">lição 03</a>.</p>
+      </section>
+
       <section class="resource-band">
-        <p><a href="../lessons/0001-contrato-de-um-flow.html">Voltar para a licao 01</a> para praticar o contrato, ou seguir para <a href="../lessons/0002-falhas-e-retries.html">falhas e retries</a>.</p>
+        <p><a href="../lessons/0001-contrato-de-um-flow.html">Voltar para a lição 01</a> para praticar o contrato, ou seguir para <a href="../lessons/0002-falhas-e-retries.html">falhas e retries</a>.</p>
         <p>Fontes: <a href="https://kestra.io/docs/tutorial/fundamentals" target="_blank" rel="noreferrer">fundamentals</a>, <a href="https://kestra.io/docs/tutorial/inputs" target="_blank" rel="noreferrer">inputs</a> e <a href="https://kestra.io/docs/workflow-components/outputs" target="_blank" rel="noreferrer">outputs</a>.</p>
       </section>
     </main>
 
-    <footer class="footer">Referencia de apoio da trilha Kestra. Revise antes de desenhar um flow para um cliente.</footer>
+    <footer class="footer">Referência de apoio da trilha Kestra. Revise antes de desenhar um flow para um cliente.</footer>
   </div>
 </body>
 </html>

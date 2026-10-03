@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Licao 01 | O contrato de um flow Kestra</title>
+  <title>Lição 01 | O contrato de um flow Kestra</title>
   <link rel="stylesheet" href="../assets/lesson.css">
   <script src="../assets/lesson.js" defer></script>
 </head>
@@ -11,48 +11,48 @@
   <div class="site-shell">
     <header class="topbar">
       <a class="brand" href="index.html">Kestra / trilha</a>
-      <nav class="topnav" aria-label="Navegacao">
+      <nav class="topnav" aria-label="Navegação">
         <a href="index.html">Trilha</a>
-        <a href="../reference/fluxo-anatomia.html">Referencia</a>
-        <a href="0002-falhas-e-retries.html">Proxima licao</a>
+        <a href="../reference/fluxo-anatomia.html">Referência</a>
+        <a href="0002-falhas-e-retries.html">Próxima lição</a>
       </nav>
     </header>
 
     <main>
       <header class="hero">
-        <span class="kicker">Licao 01 / 7 minutos</span>
-        <h1>Um flow profissional comeca por um contrato.</h1>
-        <p>Antes de conectar API, banco ou planilha, defina o que entra, o que acontece e qual evidencia sai. Esse pequeno habito evita automacoes dificeis de reutilizar e vender.</p>
+        <span class="kicker">Lição 01 / 7 minutos</span>
+        <h1>Um flow profissional começa por um contrato.</h1>
+        <p>Antes de conectar API, banco ou planilha, defina o que entra, o que acontece e qual evidência sai. Esse pequeno hábito evita automações difíceis de reutilizar e vender.</p>
         <div class="lesson-meta">
-          <span>Vitoria: criar e executar um flow parametrizado</span>
-          <span>Nivel: primeiro contato</span>
+          <span>Vitória: criar e executar um flow parametrizado</span>
+          <span>Nível: primeiro contato</span>
         </div>
       </header>
 
       <div class="lesson-layout">
         <div class="content-column">
           <section>
-            <p class="lead">Em Kestra, um flow e uma declaracao versionavel de um processo. A primeira versao nao precisa ser grande; ela precisa tornar o contrato visivel.</p>
+            <p class="lead">Em Kestra, um flow é uma declaração versionável de um processo. A primeira versão não precisa ser grande; ela precisa tornar o contrato visível.</p>
             <div class="definition-grid">
               <div class="definition">
                 <strong>Entrada</strong>
-                <p>O dado que muda entre execucoes, como cliente, periodo ou referencia.</p>
+                <p>O dado que muda entre execuções, como cliente, período ou referência.</p>
               </div>
               <div class="definition">
                 <strong>Tarefa</strong>
-                <p>Um passo executavel que registra, consulta, transforma ou envia algo.</p>
+                <p>Um passo executável que registra, consulta, transforma ou envia algo.</p>
               </div>
               <div class="definition">
-                <strong>Saida</strong>
+                <strong>Saída</strong>
                 <p>O resultado que outra tarefa, outro flow ou uma pessoa consegue verificar.</p>
               </div>
             </div>
-            <div class="pull-quote">Se um cliente pedir a mesma automacao para outra empresa, o que deve mudar: o flow ou os inputs?</div>
+            <div class="pull-quote">Se um cliente pedir a mesma automação para outra empresa, o que deve mudar: o flow ou os inputs?</div>
           </section>
 
           <section>
             <h2>O flow da nossa primeira entrega</h2>
-            <p>Este exemplo confirma uma solicitacao de onboarding. Ele e deliberadamente pequeno: dois inputs, duas tarefas e uma saida declarada.</p>
+            <p>Este exemplo confirma uma solicitação de onboarding. Ele é deliberadamente pequeno: dois inputs, duas tarefas e uma saída declarada.</p>
             <div class="code-frame">
               <div class="code-label">
                 <span>onboarding_confirmation.yaml</span>
@@ -60,7 +60,7 @@
               </div>
               <pre id="flow-yaml"><code>id: onboarding_confirmation
 namespace: training.kestra
-description: Confirma uma solicitacao de onboarding
+description: Confirma uma solicitação de onboarding
 
 inputs:
   - id: customer
@@ -84,18 +84,18 @@ outputs:
     type: STRING
     value: "{{ outputs.result.value }}"</code></pre>
             </div>
-            <p>Repare na separacao: <code>customer</code> e <code>request_id</code> sao dados da execucao; <code>announce</code> deixa um rastro no log; <code>status</code> e um resultado que pode ser consumido depois.</p>
+            <p>Repare na separação: <code>customer</code> e <code>request_id</code> são dados da execução; <code>announce</code> deixa um rastro no log; <code>status</code> é um resultado que pode ser consumido depois.</p>
           </section>
 
           <section>
             <h2>Execute e observe</h2>
-            <p>Se voce tiver Kestra Cloud ou uma instancia local, cole o YAML no editor de flows. Se ainda nao tiver ambiente, leia o fluxo como um contrato e use o quiz abaixo; a instalacao entra depois, quando a forma do processo estiver clara.</p>
+            <p>Se você tiver Kestra Cloud ou uma instância local, cole o YAML no editor de flows. Se ainda não tiver ambiente, leia o fluxo como um contrato e use o quiz abaixo; a instalação entra depois, quando a forma do processo estiver clara.</p>
             <div class="steps">
               <div class="step">
                 <div><strong>Crie o flow</strong><p>Use o YAML acima e mantenha o <code>namespace</code> de treinamento por enquanto.</p></div>
               </div>
               <div class="step">
-                <div><strong>Execute com dados diferentes</strong><p>Troque <code>customer</code> e <code>request_id</code> para simular dois clientes sem editar a definicao.</p></div>
+                <div><strong>Execute com dados diferentes</strong><p>Troque <code>customer</code> e <code>request_id</code> para simular dois clientes sem editar a definição.</p></div>
               </div>
               <div class="step">
                 <div><strong>Confira as duas evidencias</strong><p>No log, procure a mensagem de <code>announce</code>; na aba de input/output, confira <code>status</code>.</p></div>
@@ -105,13 +105,13 @@ outputs:
 
           <section>
             <div class="practice">
-              <h3>Recuperacao: qual parte deve ser parametrizada?</h3>
-              <p class="quiz-question">Qual e o papel dos <code>inputs</code> neste primeiro flow?</p>
+              <h3>Recuperação: qual parte deve ser parametrizada?</h3>
+              <p class="quiz-question">Qual é o papel dos <code>inputs</code> neste primeiro flow?</p>
               <div class="quiz" data-quiz>
                 <div class="quiz-options">
-                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Correto: inputs deixam o mesmo flow reutilizavel para varias execucoes.">Parametrizar valores variaveis</button>
-                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Essa responsabilidade pertence a secrets e configuracoes protegidas, nao aos inputs comuns.">Persistir segredos sensiveis</button>
-                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Quem inicia o flow e o trigger; inputs apenas fornecem dados para uma execucao.">Disparar horarios fixos</button>
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Correto: inputs deixam o mesmo flow reutilizável para várias execuções.">Parametrizar valores variáveis</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Essa responsabilidade pertence a secrets e configurações protegidas, não aos inputs comuns.">Persistir segredos sensíveis</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Quem inicia o flow é o trigger; inputs apenas fornecem dados para uma execução.">Disparar horários fixos</button>
                 </div>
                 <p class="quiz-feedback" data-feedback aria-live="polite"></p>
               </div>
@@ -119,18 +119,18 @@ outputs:
           </section>
 
           <section>
-            <h2>Uma decisao de produto</h2>
-            <p>Quando voce vender uma automacao, o cliente nao compra YAML. Ele compra um resultado repetivel. Para cada flow, escreva uma frase de saida que possa ser verificada por alguem que nao participou da implementacao.</p>
-            <p><strong>Exercicio de 60 segundos:</strong> substitua mentalmente <code>onboarding_confirmation</code> por um processo empresarial que voce gostaria de automatizar. Qual seria o input que varia e qual output provaria o valor?</p>
+            <h2>Uma decisão de produto</h2>
+            <p>Quando você vender uma automação, o cliente não compra YAML. Ele compra um resultado repetível. Para cada flow, escreva uma frase de saída que possa ser verificada por alguém que não participou da implementação.</p>
+            <p><strong>Exercício de 60 segundos:</strong> substitua mentalmente <code>onboarding_confirmation</code> por um processo empresarial que você gostaria de automatizar. Qual seria o input que varia e qual output provaria o valor?</p>
           </section>
 
           <section>
-            <h2>Fonte primaria e proximo passo</h2>
-            <p>A referencia principal desta licao e o tutorial oficial de <a href="https://kestra.io/docs/tutorial/fundamentals" target="_blank" rel="noreferrer">fundamentals</a>, complementado pela documentacao de <a href="https://kestra.io/docs/tutorial/inputs" target="_blank" rel="noreferrer">inputs</a> e <a href="https://kestra.io/docs/workflow-components/outputs" target="_blank" rel="noreferrer">outputs</a>.</p>
-            <p>Depois de entender o contrato, siga para <a href="0002-falhas-e-retries.html">falhas e retries</a>. A <a href="../reference/fluxo-anatomia.html">referencia de anatomia</a> fica aberta para consulta.</p>
+            <h2>Fonte primária e próximo passo</h2>
+            <p>A referência principal desta lição é o tutorial oficial de <a href="https://kestra.io/docs/tutorial/fundamentals" target="_blank" rel="noreferrer">fundamentals</a>, complementado pela documentação de <a href="https://kestra.io/docs/tutorial/inputs" target="_blank" rel="noreferrer">inputs</a> e <a href="https://kestra.io/docs/workflow-components/outputs" target="_blank" rel="noreferrer">outputs</a>.</p>
+            <p>Depois de entender o contrato, siga para <a href="0002-falhas-e-retries.html">falhas e retries</a>. A <a href="../reference/fluxo-anatomia.html">referência de anatomia</a> fica aberta para consulta.</p>
             <div class="practice">
               <h3>Traga sua pergunta</h3>
-              <p>Se alguma palavra, expressao ou decisao ficou ambigua, pergunte ao seu professor. A proxima licao deve responder ao ponto que mais atrapalhou sua tentativa, nao apenas seguir uma ordem fixa.</p>
+              <p>Se alguma palavra, expressão ou decisão ficou ambígua, pergunte ao seu professor. A próxima lição deve responder ao ponto que mais atrapalhou sua tentativa, não apenas seguir uma ordem fixa.</p>
             </div>
           </section>
         </div>
@@ -139,24 +139,24 @@ outputs:
           <div class="side-note">
             <h3>O que guardar</h3>
             <ul>
-              <li>Inputs variam por execucao.</li>
+              <li>Inputs variam por execução.</li>
               <li>Tasks produzem efeitos.</li>
-              <li>Outputs tornam o resultado verificavel.</li>
+              <li>Outputs tornam o resultado verificável.</li>
             </ul>
           </div>
           <div class="side-note">
             <h3>Alerta profissional</h3>
-            <p>Outputs ficam armazenados no backend. Nunca use outputs para transportar senhas, tokens ou outras informacoes sensiveis.</p>
+            <p>Outputs ficam armazenados no backend. Nunca use outputs para transportar senhas, tokens ou outras informações sensíveis.</p>
           </div>
           <div class="side-note">
             <h3>Leitura curta</h3>
-            <p><a href="../reference/fluxo-anatomia.html">Anatomia de um flow</a><br>Uma folha para revisar antes de desenhar uma automacao para cliente.</p>
+            <p><a href="../reference/fluxo-anatomia.html">Anatomia de um flow</a><br>Uma folha para revisar antes de desenhar uma automação para cliente.</p>
           </div>
         </aside>
       </div>
     </main>
 
-    <footer class="footer">Licao 01 da trilha Kestra. O proximo registro de aprendizagem sera criado depois da sua resposta ao exercicio.</footer>
+    <footer class="footer">Lição 01 da trilha Kestra. O próximo registro de aprendizagem será criado depois da sua resposta ao exercício.</footer>
   </div>
 </body>
 </html>

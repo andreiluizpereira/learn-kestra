@@ -37,7 +37,7 @@
 
   document.querySelectorAll('[data-quiz]').forEach(function (quiz) {
     var options = quiz.querySelectorAll('[data-answer]');
-    var feedback = quiz.querySelector('[data-feedback]');
+    var feedback = quiz.querySelector('[data-feedback]:not([data-answer])');
 
     options.forEach(function (option) {
       option.addEventListener('click', function () {
@@ -50,7 +50,7 @@
         option.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
         feedback.textContent = isCorrect
           ? option.dataset.feedback
-          : option.dataset.feedback + ' Releia o trecho sobre o contrato e tente explicar a decisao em voz alta.';
+          : option.dataset.feedback + ' Releia o trecho relacionado e tente explicar a decisao em voz alta.';
         feedback.classList.add('is-visible');
       });
     });
