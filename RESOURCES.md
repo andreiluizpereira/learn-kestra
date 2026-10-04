@@ -12,6 +12,8 @@
   Fonte primaria sobre handlers globais e locais, `allowFailure`, `allowWarning` e diferenca entre `errors` e `afterExecution`.
 - [Kestra: Task Retries](https://kestra.io/docs/workflow-components/retries)
   Referencia atual para retries constantes, exponenciais e aleatorios, `maxAttempts`, `maxDuration`, restart e replay.
+- [Kestra core: Fail](https://kestra.io/plugins/core/execution/io.kestra.plugin.core.execution.fail)
+  Tarefa que provoca uma falha intencional; aceita `errorMessage`, `condition` e retry de tarefa. Use no laboratorio da licao 04 para observar tentativas e errors sem integracao externa.
 - [Kestra: Triggers](https://kestra.io/docs/tutorial/triggers)
   Introduz schedules, eventos, flow triggers e o timezone UTC padrao. Use quando o aluno passar de execucao manual para automacao operacional.
 - [Kestra: Prometheus Metrics](https://kestra.io/docs/administrator-guide/prometheus-metrics)
@@ -27,4 +29,4 @@
 ## Gaps
 
 - Ainda falta pesquisar fontes confiaveis sobre empacotamento comercial, precificacao, suporte e limites operacionais de um servico baseado em Kestra.
-- O ambiente de execucao do aluno ainda nao foi escolhido entre Kestra Cloud e uma instalacao local; isso deve ser decidido antes das licoes de integracao real.
+- Ambiente declarado: Kestra 2.0 local em outro computador. O aluno relatou sucesso na execucao manual do resumo diario (com output informado) e no disparo agendado apos mudar o horario para 22h25; exemplos de recuperacao de falhas e de integracao ainda nao foram verificados nessa instancia.

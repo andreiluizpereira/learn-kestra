@@ -115,6 +115,22 @@ outputs:
         </div>
       </section>
 
+      <section class="resource-band" id="recuperacao">
+        <h2>Retry e tratamento de falhas</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mecanismo</th><th>Papel</th><th>Limite importante</th></tr></thead>
+            <tbody>
+              <tr><td>retry na tarefa</td><td>Repete a tarefa quando ela falha.</td><td>maxAttempts inclui a tentativa inicial; não repete as tarefas anteriores já concluídas.</td></tr>
+              <tr><td>errors global</td><td>Executa tarefas de tratamento quando há falha.</td><td>Não exige retry e não transforma, por si só, o processo falho em sucesso.</td></tr>
+              <tr><td>Fail</td><td>Provoca um erro para testes ou decisões explícitas.</td><td>Sem condition, sempre falha; repetir não corrige essa falha intencional.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Sem <code>allowFailure</code>, uma falha definitiva interrompe as tarefas seguintes. Compare o estado da execução com o do handler: um log de erro bem-sucedido não prova que o processo entregou seu resultado. Conte tentativas no detalhe da tarefa, não pelo número de linhas de log.</p>
+        <p>Fontes: <a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">retries</a>, <a href="https://kestra.io/docs/workflow-components/errors" target="_blank" rel="noreferrer">errors</a> e <a href="https://kestra.io/plugins/core/execution/io.kestra.plugin.core.execution.fail" target="_blank" rel="noreferrer">Fail</a>. Pratique na <a href="../lessons/0004-falha-controlada.html">lição 04</a>.</p>
+      </section>
+
       <section class="resource-band" id="agendamento">
         <h2>Agendamento diário</h2>
         <p>Schedule inicia execuções pelo calendário; retry reage a falhas conforme seu nível de configuração. Um handler em <code>errors</code> pode tratar falhas mesmo sem retry.</p>

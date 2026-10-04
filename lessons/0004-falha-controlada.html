@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lição 04 | Falha controlada no Kestra</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+  <script src="../assets/lesson.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">Kestra / trilha</a>
+      <nav class="topnav" aria-label="Navegação">
+        <a href="0003-agendamento-e-fuso.html">Lição anterior</a>
+        <a href="../reference/fluxo-anatomia.html#recuperacao">Referência</a>
+        <a href="index.html">Trilha</a>
+      </nav>
+    </header>
+    <main>
+      <header class="hero">
+        <span class="kicker">Lição 04 / 8 minutos / Kestra 2.0</span>
+        <h1>Falha controlada</h1>
+        <p>Antes de operar a automação de um cliente, observe como ela falha. Neste laboratório, você vai distinguir tentativas de uma tarefa, interrupção do processo e registro do erro.</p>
+        <div class="lesson-meta">
+          <span>Vitória: explicar a falha com evidências</span>
+          <span>Pré-requisitos: lições 02 e 03</span>
+        </div>
+      </header>
+      <div class="lesson-layout">
+        <div class="content-column">
+          <section>
+            <h2>Falhar é o resultado esperado</h2>
+            <p class="lead">A tarefa Fail provoca um erro de propósito. Neste teste, FAILED significa que a falha planejada aconteceu, não que o exercício foi feito errado.</p>
+            <p>A <a href="https://kestra.io/plugins/core/execution/io.kestra.plugin.core.execution.fail" target="_blank" rel="noreferrer">documentação de Fail</a> estabelece que, sem <code>condition</code>, a tarefa sempre falha. Ela aceita uma política de retry. O flow abaixo só usa tarefas do core, sem API, Docker, cobrança ou envio de mensagens externas.</p>
+            <p>Faça o teste na sua instalação do Kestra 2.0, no outro computador. Crie um flow separado: não altere o resumo diário e não adicione triggers. Ainda não executamos este exemplo na sua instância.</p>
+          </section>
+          <section>
+            <h2>Teste A: três tentativas no máximo</h2>
+            <p>Antes de executar, escreva sua previsão: quantas vezes cada tarefa roda, se a última tarefa é alcançada e qual será o estado final.</p>
+            <div class="code-frame">
+              <div class="code-label"><span>laboratorio_falha.yaml</span><button class="copy-button" type="button" data-copy-target="#failure-yaml">Copiar</button></div>
+              <pre id="failure-yaml"><code>id: laboratorio_falha
+namespace: learn.reliability
+description: Falha intencional para observar retry e errors
+
+tasks:
+  - id: iniciar
+    type: io.kestra.plugin.core.log.Log
+    message: "INICIO / {{ execution.id }}"
+
+  - id: falhar
+    type: io.kestra.plugin.core.execution.Fail
+    errorMessage: "Falha intencional do laboratorio"
+    retry:
+      type: constant
+      maxAttempts: 3
+      interval: PT1S
+
+  - id: concluir
+    type: io.kestra.plugin.core.log.Log
+    message: "CONCLUSAO / {{ execution.id }}"
+
+errors:
+  - id: registrar_erro
+    type: io.kestra.plugin.core.log.Log
+    level: ERROR
+    message: "ERRO TRATADO / {{ flow.namespace }}.{{ flow.id }} / {{ execution.id }}"</code></pre>
+            </div>
+            <div class="steps">
+              <div class="step"><div><strong>Valide e execute manualmente</strong><p>Salve no editor do Kestra e inicie uma execução nova. Não use Restart ou Replay neste comparativo.</p></div></div>
+              <div class="step"><div><strong>Inspecione falhar</strong><p>Confira as tentativas da tarefa no detalhe da execução. Não conte linhas de log como tentativas: uma tentativa pode gerar várias linhas.</p></div></div>
+              <div class="step"><div><strong>Leia a evidência operacional</strong><p>Confira o estado final, o estado das tarefas e os logs INICIO, CONCLUSAO e ERRO TRATADO. Compare com sua previsão.</p></div></div>
+            </div>
+            <p>Segundo a <a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">referência de retries</a>, <code>maxAttempts: 3</code> inclui a tentativa inicial: uma tentativa inicial e até duas retentativas, com espera de um segundo. Aqui, quem recebe o retry é <code>falhar</code>, não <code>iniciar</code> nem o flow inteiro.</p>
+            <p>Fail não se recupera sozinho. Usamos retry em uma falha permanente apenas para observar seu mecanismo; isso não é uma recomendação de repetir erros permanentes em produção.</p>
+          </section>
+          <section>
+            <h2>Teste B: sem retry, ainda há tratamento?</h2>
+            <p>No mesmo flow, remova somente o bloco <code>retry</code> e suas três propriedades de <code>falhar</code>. Preserve <code>errorMessage</code> e a lista <code>errors</code>. Salve a alteração e inicie outra execução manual.</p>
+            <p>Registre novamente tentativas, estados e mensagens. A <a href="https://kestra.io/docs/workflow-components/errors" target="_blank" rel="noreferrer">documentação de errors</a> mostra handlers com uma tarefa Fail sem retry: o tratamento não depende de haver retentativas.</p>
+            <details>
+              <summary>Comparar a previsão com o resultado esperado</summary>
+              <div class="table-wrap">
+                <table>
+                  <caption>Expectativa para este flow, sem políticas globais adicionais</caption>
+                  <thead><tr><th>Evidência</th><th>Teste A</th><th>Teste B</th></tr></thead>
+                  <tbody>
+                    <tr><td>iniciar</td><td>Executa uma vez</td><td>Executa uma vez</td></tr>
+                    <tr><td>Tentativas de falhar</td><td>3, todas falham</td><td>1, falha</td></tr>
+                    <tr><td>concluir</td><td>Não executa</td><td>Não executa</td></tr>
+                    <tr><td>registrar_erro</td><td>Executa</td><td>Executa</td></tr>
+                    <tr><td>Estado final</td><td>FAILED</td><td>FAILED</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>O handler pode terminar com sucesso enquanto o flow termina em falha. Registrar o problema não conclui o processo empresarial. Sem <code>allowFailure</code>, a falha interrompe as tarefas seguintes.</p>
+            </details>
+            <p>Se o resultado diferir, traga os estados e as tentativas observadas. Por exemplo, o Kestra pode ter <a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">retry configurado globalmente</a>; não trate uma previsão diferente como prova de erro seu.</p>
+          </section>
+          <section>
+            <h2>Recupere os conceitos</h2>
+            <div class="practice">
+              <h3>Qual passo será repetido?</h3>
+              <p class="quiz-question">No teste A, a primeira tentativa de falhar deu erro. Qual tarefa o retry configurado repete?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="iniciar já terminou e não tem retry neste YAML.">A tarefa iniciar</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="concluir não é a tarefa com retry; ela não será alcançada após a falha definitiva.">A tarefa concluir</button>
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Isso: o retry da tarefa falhar cria outra tentativa dessa tarefa na mesma execução.">A tarefa falhar</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+            <div class="practice">
+              <h3>Sem retentativas</h3>
+              <p class="quiz-question">No teste B, sem política global de retry, o que acontece com registrar_erro após falhar?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Isso: errors atende a falha mesmo quando não existe retry.">Executa mesmo assim</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="errors não depende de Schedule; este laboratório nem tem triggers.">Espera novo agendamento</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="A ausência de retry não impede o handler de registrar a falha.">Ignora esse erro</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+            <div class="practice">
+              <h3>Alerta não é entrega</h3>
+              <p class="quiz-question">registrar_erro terminou com sucesso, mas falhar esgotou as tentativas. Qual é o estado final esperado neste exemplo?</p>
+              <div class="quiz" data-quiz>
+                <div class="quiz-options">
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="O sucesso do log de tratamento não elimina a falha da tarefa principal.">Estado final SUCCESS</button>
+                  <button class="quiz-option" type="button" data-answer="correct" data-feedback="Isso: o handler registrou o problema, mas o processo principal falhou.">Estado final FAILED</button>
+                  <button class="quiz-option" type="button" data-answer="wrong" data-feedback="Este exemplo não usa allowFailure para continuar e terminar com WARNING.">Estado final WARNING</button>
+                </div>
+                <p class="quiz-feedback" data-feedback aria-live="polite"></p>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Traga o que observou</h2>
+            <p>Envie os resultados dos testes A e B: estado final, quantidade de tentativas de <code>falhar</code>, se <code>concluir</code> executou e se apareceu <code>ERRO TRATADO</code>. Explique, com suas palavras, por que o handler funcionar não significa que o processo foi concluído.</p>
+            <p>Se o editor rejeitar o YAML ou você não encontrar as tentativas, traga a mensagem ou sua dúvida. Podemos ajustar o exercício ao seu ambiente sem compartilhar credenciais ou dados de clientes.</p>
+            <p>Em outro dia, tente prever o teste A com <code>maxAttempts: 2</code> sem reler a lição. Depois compare com o que viu hoje.</p>
+          </section>
+          <section>
+            <h2>Fontes e continuidade</h2>
+            <ul class="source-list">
+              <li><a href="https://kestra.io/docs/workflow-components/retries" target="_blank" rel="noreferrer">Retries: referência oficial</a><small>Leia a seção task-level retries e a definição de maxAttempts.</small></li>
+              <li><a href="https://kestra.io/docs/workflow-components/errors" target="_blank" rel="noreferrer">Errors: referência oficial</a><small>Compare o exemplo de Fail sem retry com seu teste B.</small></li>
+              <li><a href="https://kestra.io/plugins/core/execution/io.kestra.plugin.core.execution.fail" target="_blank" rel="noreferrer">Fail: documentação do plugin core</a><small>A tarefa usada para provocar a falha sem integração externa.</small></li>
+            </ul>
+            <p>Revise a <a href="0002-falhas-e-retries.html">escolha entre retry e tratamento</a>, diferencie isso do <a href="0003-agendamento-e-fuso.html">agendamento</a> e consulte a <a href="../reference/fluxo-anatomia.html#recuperacao">referência de recuperação</a>.</p>
+          </section>
+        </div>
+        <aside class="side-column">
+          <div class="side-note"><h3>Mesmo flow, duas execuções</h3><p>Execute A, altere o YAML e execute B. A mudança não reescreve o histórico de A.</p></div>
+          <div class="side-note"><h3>Uma pergunta de operação</h3><p>Qual evidência permite distinguir “o erro foi comunicado” de “a automação entregou o resultado”?</p></div>
+          <div class="side-note"><h3>Laboratório isolado</h3><p>Não há Schedule nem efeito externo. A falha é proposital e o retry é limitado.</p></div>
+        </aside>
+      </div>
+    </main>
+    <footer class="footer">Lição 04 da trilha Kestra. <a href="index.html">Voltar à trilha</a>.</footer>
+  </div>
+</body>
+</html>
